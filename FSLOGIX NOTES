@@ -1,0 +1,251 @@
+FSLOGIX
+FS Logix:- FS Logix is a type of user profile solution which enhances and enables a consistent experience for Windows user profiles in virtual desktop computing environment. FSlogix is not limited to virtual desktop environment and could be used on physical desktop where a more portable user experience is desired.
+
+Functions:-
+1.	Roam user data.
+2.	Minimize sign-in times for VM environment.
+3.	Optimize file I/O.
+4.	Provide a local profile experience.
+5.	Simplify the management of apps and gold images.
+
+Why we prefer FSlogix:-
+1.	Filter driver masks the folder where the VHD is mounted.
+2.	Behaves as if it’s locally-mounted, avoiding the problems introduced by using junction points. 
+3.	 Enables use of Teams and OneDrive. 
+4.	FSLogix Containers supports concurrent session.
+
+PREREQUISITES:-
+
+Eligibility:- You’re eligible to use FSLogix if you have one of the following licenses:-
+1.	Microsoft 365 E3/E5.
+2.	MS 365 A3/A5/Student Use Benefits.
+3.	MS 365 F1/F3.
+4.	MS 365 Business.
+5.	Windows 10 Enterprise E3/E5.
+6.	Windows 10 Education A3/A5.
+7.	RDS Client Access License (CAL).
+8.	RDS Subscriber Access License (SAL).
+9.	Azure Virtual Desktop per-user access license.
+
+Supported OS:-
+•	Windows Server 2016, 2019, 2022, 2025.
+•	Windows 11 Single or multi-session.
+•	All MS supported OS.
+
+How many types of containers? → FSLogix has 2 primary container types:
+
+1) Profile containers → A profile container is a container as the data related to a user’s profile, which is directly stored in the VHD(x).
+•	Its a full remote profile solution for non-persistent environments.
+•	Re-directs the entire user profile to the remote location.
+•	Its configuration defines how and where the profile is re-directed.
+•	The entire profile except redirection.xml is included in the profile container.
+•	Profile container includes all the benefits of office containers.
+•	Profile container VHD(x) will contain the entire Windows profile for the user except for: (i) the temp folder location. 
+•	(ii) the IE (Internet Explorer) crash folder location.
+Note: Exclusions are done with a redirection.xml file.
+
+2) ODFC Container → An ODFC Container is a container type, which is focused on storing profile content that is unique to Microsoft Office applications. Full form of ODFC is Office Data File Container.
+Office container re-directs only areas of the profile that are specific to MS Office apps.
+•	A default ODFC container includes: 
+1.	Office Activation 
+2.	 Outlook
+3.	 Outlook personalization 
+4.	SharePoint 
+5.	 OneDrive 
+6.	 Skype for Business (legacy support)
+Note: ODFC Containers are an optional configuration.
+
+Agent Components of FSLogix:-
+
+1.	frx.exe → It is a command line utility. The utility is installed to c:\program files\fslogix\apps.
+SERVICES:
+2.	frxsvc.exe → Service that communicates with the command line tool, the drivers and monitors the rules folder for changes.
+3.	frxccd.exe → Service responsible for handling cloud cache operations. Display name → Fslogix Cloud Caching Service
+4.	Drivers:- i) frxdrv.sys → This driver is responsible for handling file system and registry requests to make hiding and redirection work. 
+ii) frxdrvvt.sys → This driver provides the advanced re-direction capabilities for profile and ODFC containers.
+iii) frxccd.sys → Responsible for handling cloud cache.
+
+FSLogix Prerequisites:-
+1.	Supported OS (Windows 11, All MS supported OS, Windows Server)
+2.	Eligible Licenses (RDS CALs, E3/E5)
+3.	User should have access to the storage providers.
+ Example: \\[server-name].contoso.com\[share-name]
+          \\[storage-account-name].contoso.com\[storage-name]
+4.	Configure antivirus exclusions.
+NOTE: Antivirus products are known to conflict with FSLogix containers and require that specific files and folders are excluded from any type of scanning.
+
+NOTE:
+•	The VHD(x) can be located on the local drive or on a network drive.
+•	FSLogix Installation Path: → c:\programfiles\fslogix\apps
+
+Cloud Cache:-
+ a) Used for high availability environments. 
+b) Location (Registry/Policy) → CCDLocation 
+CCDLocationPath:- (For profile) HKLM\software\Policies\fslogix\profiles
+CCDLocationPath(For ODFC): HKLM\software\policies\fslogix\ODFC
+Cloud Cache Definition:- Cloud cache is a feature that works with profile and ODFC containers to provide resiliency and high availability.
+
+Common Log Files:-
+ a) By default logging is enabled for all log files. 
+b) Login Configuration Registry Path:- HKLM\software\fslogix\login
+(c)Profile Container related logs directory: %ProgramData%\FSLogix\Logs\Profile
+ODFC logs directory: %ProgramData%\FSLogix\Logs\ODFC
+(d)Rule Compilation: Path →%ProgramData%\FSLogix\Logs\rule compilation
+(e)Service: Path → %ProgramData%\FSLogix\Logs\Service
+
+Group Policy templates for FSLogix:-
+•	FSLogix.admx and FSLogix.adml both are included in installation zip file.
+FSLogix.admx → %sysvol%\PolicyDefinitions
+FSLogix.adml → %sysvol%\PolicyDefinitions\en-US
+
+After FSLogix is installed, 4 user groups are created:-
+•	FSLogix ODFC Exclude List
+•	FSLogix ODFC Include List
+•	FSLogix Profile Exclude List
+•	FSLogix Profile Include List
+
+Profile Types:
+1.	0 → Normal Profile behaviour
+2.	1(Read-write) → machine should only be the read-write
+3.	2(Read-only) → machine should only be (read-only instance)
+4.	3 → machine should try to take the RW role and if it can’t, it should fall back to a RO role.
+
+VHD Disk COMPACTION:
+VHD Disk Compaction is a process that runs every time a user signs out. The compaction process is designed to automatically decrease the amount of storage a user’s container depending on a predefined threshold. VHD Disk Compaction is Enabled by default.
+Dependencies: → Depends on (defragsvc).  Display name is Optimize Drives Service.
+Requirement:
+1.	Drive should be dynamically expandable (VHD(x)).
+2.	Disk compaction should be enabled (by default enabled).
+3.	Size of the container must be greater than 1 GB (Size on disk) for disk compaction to run.
+
+FSLogix Connection Flows:
+1.	User logs in to the Windows machine with FSLogix installed and configured.
+2.	FSLogix Agents (services and drivers) reads through the FSLogix configuration and checks VHD location.
+3.	If the user has correct permission (Read/Write), the VHD(x) is dynamically attached/mounted to the machine.
+4.	The user profile is immediately available and appears in the system and behaves like a local profile.
+5.	After user log-off, the VHD is detached/unmounted gracefully, ready to be re-attached the next time user logs in.
+
+Other Profile Solutions	FSLogix Profile Solutions
+1) Uses Copy/Paste to provide the new profile.	1) Uses Mount/Unmount to dynamically attach the profile.
+2) Slower to load user profile.	2) Faster to load user profile.
+3) Could be platform limited.	3) Can be used on any platform (AVD, RDS, Citrix).
+4) Limited scalability.	4) Highly scalable.
+5) Office data redirection might be unavailable.	5) Office data redirection is available.
+6) Concurrency is not supported.	6) Concurrency is supported.
+7) Could be complicated to configure.	7) Easy to configure.
+
+FSLogix App Rules:-
+→ What is FSLogix Application Rule Set?
+ Rule set files are a collection of rules that show, hide, redirect, or customize specific aspects of the registry, file system, applications, or printers. 
+These rule set files are created by the FSLogix Apps Rule Editor and are processed by FSLogix Apps Service (frxsvc).
+Types of Rules:-
+ App Rules are of 3 types:-
+1.	Hiding rule.
+2.	Redirection rule.
+3.	Specify value rule.
+Hiding rule:- A hiding rule hides specific items from one user or group of users. Hiding rules can apply to files, folders, registry keys, registry values, printers, or fonts.
+Redirection rule:- Redirection rules allow IT administrators to redirect non-profile or other specific data into the user profile containers.
+To Ensure FSLogix is available on subsequent sign-in regardless of which virtual machine they sign into.
+Specify Value rules: At sign-in the specify value rules will set a registry value for a specific user or group of users.
+NOTE: FSLogix Apps rule set assignment doesn’t support Microsoft Entra ID cloud-only accounts.
+Application Rule sets are assigned to users, groups, and other entities.
+Assignment types: You can assign rule sets to the following entities:
+•	User
+•	Group
+•	Process
+•	Network location (IP Address)
+•	Computer
+•	Directory Container (distinguished name)
+•	Environment Variable
+
+NOTE:
+•	Newly created rules automatically have the Everyone group assigned with the Applies setting configured to NO.
+•	Multiple assignments can be created in one Rule Set.
+•	The Rule Set is applied from top to bottom. 
+•	When you create a rule two files are created: rule(.frx) and assignment (.fxa) files.
+•	You need to copy the rules to every vm where you want it applied.
+•	Rules and assignment files are placed in % program files %\FSLlogix\aps\rules.
+
+BASIC TROUBLESHOOTING for Profile Containers →
+1.	Check local group membership (Exclude and Include Groups).
+2.	Check the Registry Settings for “enabled” and VHD location or CCDLocation.
+3.	Check to ensure the correct permissions are assigned to the user on the FileShare.
+ (a) The VHD location should be accessible by the user (Read/Write).
+4.	Check if a local profile doesn’t already exist for the user.
+5.	Check if the user doesn’t have a disconnected session.
+6.	 Check the Profile logs in %ProgramData%\FSLogix\Logs\Profile
+
+BASIC troubleshooting for Office Container (ODFC):-
+1.	Check local Group Membership (exclude and include Group).
+2.	Check the Registry Setting “enabled” and VHD location on CCLocation.
+3.	Check to ensure the correct permissions are assigned to the user on the file share.
+ a) The VHD location should be accessible by the user (Read-write).
+4.	Check Windows Search Service is running.
+5.	Validate the Outlook GPO settings.
+6.	Check the ODFC log files at %ProgramData%\FSLogix\Logs\ODFC
+
+FSLogix DEPLOYMENT :-
+
+→ On-Premise ←If configuring
+1)On supported Windows machine, install FSLogix using FSLogix App Setup.
+2) FSLogix can be configured in two ways - i) GPO ii) Registry
+3) If using GPO to configure FSLogix, we need to add the FSLogix.admx and FSLogix.adml files to the %sysvol%\ Policy Definition and %sysvol%\ Policy Definition \en-us respectively. 
+This will add the Policy template to the local Group Policy.
+4) Create a File Share and share with the users (allow Read/Write).
+5) Configure below GPOs:
+•	Enabled: set to Enabled and select Enabled
+•	VHD location: set to Enabled and specify the path of the file share (e.g. \\fileserver.domain.com\fileshare)
+6) Set OPTIONAL GPOs such as:
+•	Delete Local Profile when VHD should apply
+•	Volume Type
+•	Prevent login with Temp Profile
+•	Prevent login with failure
+•	Size in MB
+7) Ensure that the user is member of the “FSLogix Profile Include Group” in the local user group.( By default Everyone is added). 
+             It is recommended to add the Administrator to the “FSLogix Profile Exclude Group” for troubleshooting purpose.
+8) Login to the configured Windows machine using the account added to the FSLogix include group.
+9) User should have FSLogix profile created and loaded.
+
+→ AVD – Entra-Joined :-
+1.	On the session host, install the FSLogix App using the FSLogix App setup.
+2.	FSLogix can be configured in two ways → GPO and Registry.
+3.	If using GPO to configure FSLogix, we need to add the FSLogix.admx and FSLogix.adml files to the %sysvol%\PolicyDefinitions and %sysvol%\PolicyDefinitions\en-US respectively.
+This will add the policy template to the local group policy.
+4.	Create a storage account and a file share within the storage account.
+ Using Access Control from the file share assign below RBAC role to the users:
+Role: SMB Share Contributor
+5. Configure below GPOs (Required):
+•	Enabled: Set to Enabled and select Enabled
+•	VHD location: Set to Enabled and specify the path of the file share (e.g. \\storageaccountname.file.core.windows.net\fileshare)
+6. Set optional GPOs such as:
+•	Delete local profile when VHD should apply
+•	Volume type
+•	Prevent login with temp profile
+•	Prevent login with failure
+•	Size in MB
+7. Ensure that the user is member of the “FSLogix Profile Include Group” in the local user groups (By default Everyone is added).
+It is recommended to add the Administrators to the “FSLogix Profile Exclude Group” for troubleshooting purpose.
+8.	Login to the AVD using the Windows App.
+9.	User should have FSLogix profile created and loaded.
+
+Disk Compaction:
+•	A = Total used space
+•	B = Total Movable size (Calculated by DefragSvc)
+•	C = A - B
+Formula:
+•	If C > = (A × 0.02) → Compaction will run
+•	If C < (A × 0.02) → Compaction will not run
+
+Cleanup Invalid Session:
+When CleanupInvalidSessions is configured, FSLogix attempts to clean up the invalid sessions (the VHD(x) mounted for the user’s profile isn’t properly detached) and allows a successful sign-in when the user signs in on the next session.
+•	PATH → HKLM\Software\FSLogix\Apps
+•	Value Name → CleanupInvalidSessions
+•	Value Type → DWORD
+•	Default value → 0 (default)
+
+
+
+
+
+
+
